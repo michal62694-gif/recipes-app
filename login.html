@@ -8,13 +8,29 @@
 </head>
 <body>
     <div class="login-container">
-        <h1>🍳 התחברות למתכונים</h1>
+        <h1 id="formTitle">🍳 התחברות למתכונים</h1>
+        
+        <!-- Login Form -->
         <form id="loginForm">
             <input type="text" id="username" placeholder="👤 שם משתמש" required>
             <input type="password" id="password" placeholder="🔒 סיסמה" required>
             <button type="submit">🚀 התחבר</button>
             <div id="error" class="error"></div>
         </form>
+        
+        <!-- Register Form (Hidden by default) -->
+        <form id="registerForm" style="display: none;">
+            <input type="text" id="regUsername" placeholder="👤 שם משתמש (לפחות 3 תווים)" required minlength="3">
+            <input type="password" id="regPassword" placeholder="🔒 סיסמה (לפחות 4 תווים)" required minlength="4">
+            <input type="password" id="regPasswordConfirm" placeholder="🔒 אימות סיסמה" required>
+            <button type="submit">✅ הירשם</button>
+            <div id="regError" class="error"></div>
+        </form>
+        
+        <!-- Toggle Button -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="toggleBtn" class="toggle-btn">אין לך חשבון? הירשם עכשיו</button>
+        </div>
     </div>
     
     <script src="js/storage.js"></script>

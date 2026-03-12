@@ -102,6 +102,20 @@ body {
     border-radius: 8px;
 }
 
+.toggle-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.toggle-btn:hover {
+    color: var(--primary-hover);
+}
+
 /* Recipes Page */
 .recipes-header {
     max-width: 1200px;
