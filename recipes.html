@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מתכונים</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="recipes-header">
+        <h1>המתכונים שלי</h1>
+        <div class="header-actions">
+            <a href="settings.html" class="btn" style="background: linear-gradient(135deg, #6b7280, #4b5563);">⚙️ הגדרות</a>
+            <button class="btn" id="addRecipeBtn">➕ הוסף מתכון</button>
+        </div>
+    </div>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="🔍 חפש מתכון לפי שם...">
+    </div>
+    
+    <div class="recipes-grid" id="recipesGrid"></div>
+
+    <div id="addRecipeModal" class="modal">
+        <div class="modal-content">
+            <h2>הוסף מתכון חדש</h2>
+            <form id="addRecipeForm">
+                <input type="text" id="recipeName" placeholder="שם המתכון" required>
+                <textarea id="recipeIngredients" placeholder="מרכיבים (כל מרכיב בשורה נפרדת)" required></textarea>
+                <textarea id="recipeSteps" placeholder="שלבי ההכנה (כל שלב בשורה נפרדת)" required></textarea>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">💾 שמור</button>
+                    <button type="button" class="btn-secondary" id="cancelBtn">✖️ ביטול</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/recipes.js"></script>
+</body>
+</html>
