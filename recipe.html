@@ -16,6 +16,32 @@
             <div class="reading-controls">
                 <button class="btn" id="startReadingBtn">🎙️ התחל קריאה</button>
                 <button class="btn btn-stop" id="stopReadingBtn" disabled>⏹️ עצור קריאה</button>
+                <button class="btn" id="editRecipeBtn">✏️ ערוך מתכון</button>
+            </div>
+            
+            <div id="editModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" id="closeModal">&times;</span>
+                    <h2>✏️ עריכת מתכון</h2>
+                    <form id="editRecipeForm">
+                        <div class="form-group">
+                            <label for="editName">שם המתכון</label>
+                            <input type="text" id="editName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editIngredients">מרכיבים (אחד בכל שורה)</label>
+                            <textarea id="editIngredients" rows="6" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editSteps">שלבי הכנה (אחד בכל שורה)</label>
+                            <textarea id="editSteps" rows="8" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">💾 שמור שינויים</button>
+                    </form>
+                </div>
             </div>
             
             <div class="recipe-section">

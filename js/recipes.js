@@ -2,6 +2,19 @@
 
 let recipes = [];
 
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        padding: 15px 25px; border-radius: 8px; font-size: 16px;
+        background: ${type === 'error' ? '#f44336' : '#4CAF50'};
+        color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    `;
+    document.body.appendChild(messageDiv);
+    setTimeout(() => messageDiv.remove(), 3000);
+}
+
 function loadRecipes() {
     try {
         recipes = JSON.parse(localStorage.getItem('recipes')) || [];
@@ -10,6 +23,20 @@ function loadRecipes() {
         console.error('Error loading recipes:', error);
         recipes = [];
         displayRecipes([]);
+    }
+}
+
+function deleteRecipe(id) {
+    if (!confirm('האם אתה בטוח שברצונך למחוק מתכון זה?')) return;
+    
+    try {
+        recipes = recipes.filter(r => r.id !== id);
+        localStorage.setItem('recipes', JSON.stringify(recipes));
+        displayRecipes(recipes);
+        showMessage('✅ המתכון נמחק בהצלחה!');
+    } catch (error) {
+        console.error('Error deleting recipe:', error);
+        showMessage('שגיאה במחיקת המתכון', 'error');
     }
 }
 
@@ -31,12 +58,25 @@ function displayRecipes(recipesToDisplay) {
         const title = document.createElement('h3');
         title.textContent = `🍽️ ${recipe.name}`;
         
-        const button = document.createElement('button');
-        button.textContent = '👁️ צפה במתכון';
-        button.onclick = () => viewRecipe(recipe.id);
+        const btnContainer = document.createElement('div');
+        btnContainer.style.cssText = 'display: flex; gap: 10px;';
         
+        const viewBtn = document.createElement('button');
+        viewBtn.textContent = '👁️ צפה במתכון';
+        viewBtn.onclick = () => viewRecipe(recipe.id);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '🗑️ מחק';
+        deleteBtn.style.cssText = 'background: var(--danger-color); flex: 0.5;';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteRecipe(recipe.id);
+        };
+        
+        btnContainer.appendChild(viewBtn);
+        btnContainer.appendChild(deleteBtn);
         card.appendChild(title);
-        card.appendChild(button);
+        card.appendChild(btnContainer);
         grid.appendChild(card);
     });
 }
@@ -141,8 +181,9 @@ function initRecipesPage() {
                     addRecipeModal.style.display = 'none';
                 }
                 addRecipeForm.reset();
+                showMessage('✅ המתכון נוסף בהצלחה!');
             } else {
-                alert('שגיאה בשמירת המתכון');
+                showMessage('שגיאה בשמירת המתכון', 'error');
             }
         });
     }

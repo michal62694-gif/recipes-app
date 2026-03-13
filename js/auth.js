@@ -1,5 +1,26 @@
 // Authentication logic
 
+// Simple hash function (must match storage.js)
+function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(36);
+}
+
+// Timing-safe string comparison
+function timingSafeEqual(a, b) {
+    if (a.length !== b.length) return false;
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+        result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return result === 0;
+}
+
 function login(username, password) {
     if (!username || !password) {
         return false;
@@ -7,7 +28,8 @@ function login(username, password) {
     
     try {
         const users = JSON.parse(localStorage.getItem('users')) || [];
-        const user = users.find(u => u.username === username && u.password === password);
+        const hashedPassword = simpleHash(password);
+        const user = users.find(u => u.username === username && timingSafeEqual(u.password, hashedPassword));
         
         if (user) {
             localStorage.setItem('currentUser', username);
@@ -45,8 +67,8 @@ function register(username, password, passwordConfirm) {
             return { success: false, message: 'שם המשתמש כבר קיים' };
         }
         
-        // Add new user
-        users.push({ username, password });
+        // Add new user with hashed password
+        users.push({ username, password: simpleHash(password) });
         localStorage.setItem('users', JSON.stringify(users));
         
         return { success: true, message: 'הרשמה הצליחה! מתחבר...' };

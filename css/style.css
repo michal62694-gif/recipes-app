@@ -290,6 +290,33 @@ body {
     color: var(--text-primary);
 }
 
+.close {
+    color: var(--text-secondary);
+    float: left;
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover,
+.close:focus {
+    color: var(--danger-color);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
 .modal-content input,
 .modal-content textarea {
     width: 100%;

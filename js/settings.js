@@ -6,6 +6,7 @@ function loadSettings() {
         
         const stepDelayInput = document.getElementById('stepDelay');
         const themeSelect = document.getElementById('theme');
+        const voiceGenderSelect = document.getElementById('voiceGender');
         
         if (stepDelayInput) {
             stepDelayInput.value = settings.stepDelay || 3;
@@ -15,6 +16,10 @@ function loadSettings() {
             themeSelect.value = settings.theme || 'light';
         }
         
+        if (voiceGenderSelect) {
+            voiceGenderSelect.value = settings.voiceGender || 'male';
+        }
+        
         applyTheme(settings.theme || 'light');
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -22,7 +27,7 @@ function loadSettings() {
     }
 }
 
-function saveSettings(stepDelay, theme) {
+function saveSettings(stepDelay, theme, voiceGender) {
     if (!stepDelay || isNaN(stepDelay) || stepDelay < 1 || stepDelay > 30) {
         console.error('Invalid step delay value');
         return false;
@@ -35,7 +40,8 @@ function saveSettings(stepDelay, theme) {
     
     const settings = {
         stepDelay: parseInt(stepDelay, 10),
-        theme: theme
+        theme: theme,
+        voiceGender: voiceGender || 'male'
     };
     
     try {
@@ -76,14 +82,22 @@ function initSettingsPage() {
         
         const stepDelayInput = document.getElementById('stepDelay');
         const themeSelect = document.getElementById('theme');
+        const voiceGenderSelect = document.getElementById('voiceGender');
         
         if (!stepDelayInput || !themeSelect) return;
         
         const stepDelay = stepDelayInput.value;
         const theme = themeSelect.value;
+        const voiceGender = voiceGenderSelect ? voiceGenderSelect.value : 'male';
         
-        if (!saveSettings(stepDelay, theme)) {
-            alert('שגיאה בשמירת ההגדרות');
+        if (!saveSettings(stepDelay, theme, voiceGender)) {
+            const message = document.getElementById('saveMessage');
+            if (message) {
+                message.textContent = '❌ שגיאה בשמירת ההגדרות';
+                message.style.display = 'block';
+                message.style.color = 'var(--danger-color)';
+                setTimeout(() => message.style.display = 'none', 3000);
+            }
         }
     });
     

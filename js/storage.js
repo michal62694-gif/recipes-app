@@ -1,11 +1,22 @@
 // Storage management
 
+// Simple hash function for demo purposes
+function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(36);
+}
+
 function initStorage() {
-    // Initialize users
+    // Initialize users with hashed passwords
     if (!localStorage.getItem('users')) {
         const defaultUsers = [
-            { "username": "admin", "password": "1234" },
-            { "username": "user", "password": "1111" }
+            { "username": "admin", "password": simpleHash("1234") },
+            { "username": "user", "password": simpleHash("1111") }
         ];
         localStorage.setItem('users', JSON.stringify(defaultUsers));
     }
