@@ -148,15 +148,8 @@ function initVoices() {
     }
 }
 
-function getPreferredHebrewVoice(voiceName, voiceGender) {
+function getPreferredHebrewVoice(voiceGender) {
     const voices = availableVoices.length ? availableVoices : (speechSynthesis.getVoices() || []);
-
-    // If the user explicitly selected a voice, try to use it first.
-    if (voiceName) {
-        const match = voices.find(v => v.name === voiceName || v.voiceURI === voiceName);
-        if (match) return match;
-    }
-
     const hebrewVoices = voices.filter(v => v.lang && v.lang.startsWith('he'));
     const gender = (voiceGender || 'male').toLowerCase();
 
@@ -184,17 +177,16 @@ function getPreferredHebrewVoice(voiceName, voiceGender) {
     return voices[0] || null;
 }
 
-function speakText(text, onEndCallback) {
+function speakText(text, onEndCallback, attempt = 0) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'he-IL';
     utterance.rate = 0.85;
-    
+
     // Get voice preference from settings
     try {
         const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
         const voiceGender = settings.voiceGender || 'male';
-        const voiceName = settings.voiceName || '';
-        const preferredVoice = getPreferredHebrewVoice(voiceName, voiceGender);
+        const preferredVoice = getPreferredHebrewVoice(voiceGender);
         if (preferredVoice) utterance.voice = preferredVoice;
     } catch (error) {
         console.error('Error setting voice:', error);
@@ -210,6 +202,13 @@ function speakText(text, onEndCallback) {
     };
 
     try {
+        // If voices are not yet loaded, retry once more after a short delay.
+        const voices = speechSynthesis.getVoices();
+        if ((voices == null || voices.length === 0) && attempt < 4) {
+            setTimeout(() => speakText(text, onEndCallback, attempt + 1), 150);
+            return;
+        }
+
         speechSynthesis.speak(utterance);
     } catch (error) {
         console.error('Speech synthesis error:', error);
@@ -225,11 +224,9 @@ function readStep(index) {
     
     // Get voice preference
     let voiceGender = 'male';
-    let voiceName = '';
     try {
         const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
         voiceGender = settings.voiceGender || 'male';
-        voiceName = settings.voiceName || '';
     } catch (error) {
         console.error('Error reading settings:', error);
     }
@@ -245,7 +242,7 @@ function readStep(index) {
         currentUtterance.rate = 0.85;
         
         // Set voice
-        const preferredVoice = getPreferredHebrewVoice(voiceName, voiceGender);
+        const preferredVoice = getPreferredHebrewVoice(voiceGender);
         if (preferredVoice) currentUtterance.voice = preferredVoice;
         
         currentUtterance.onend = () => {
