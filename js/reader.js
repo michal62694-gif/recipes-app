@@ -148,28 +148,12 @@ function initVoices() {
     }
 }
 
-function getPreferredHebrewVoice(voiceGender) {
+function getPreferredHebrewVoice() {
     const voices = availableVoices.length ? availableVoices : (speechSynthesis.getVoices() || []);
     const hebrewVoices = voices.filter(v => v.lang && v.lang.startsWith('he'));
-    const gender = (voiceGender || 'male').toLowerCase();
-
-    const genderHints = gender === 'female'
-        ? ['female', 'woman', 'w']
-        : ['male', 'man', 'm'];
-
-    // Prefer a voice that explicitly matches the requested gender.
-    const genderMatch = voices.find(v =>
-        genderHints.some(hint => v.name.toLowerCase().includes(hint))
-    );
-
-    if (genderMatch) return genderMatch;
 
     // Prefer a Hebrew voice if available.
     if (hebrewVoices.length > 0) {
-        // Use second voice for female if there are at least 2 Hebrew voices.
-        if (gender === 'female' && hebrewVoices.length > 1) {
-            return hebrewVoices[1];
-        }
         return hebrewVoices[0];
     }
 
@@ -184,9 +168,7 @@ function speakText(text, onEndCallback, attempt = 0) {
 
     // Get voice preference from settings
     try {
-        const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
-        const voiceGender = settings.voiceGender || 'male';
-        const preferredVoice = getPreferredHebrewVoice(voiceGender);
+        const preferredVoice = getPreferredHebrewVoice();
         if (preferredVoice) utterance.voice = preferredVoice;
     } catch (error) {
         console.error('Error setting voice:', error);
@@ -222,15 +204,6 @@ function readStep(index) {
         return;
     }
     
-    // Get voice preference
-    let voiceGender = 'male';
-    try {
-        const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
-        voiceGender = settings.voiceGender || 'male';
-    } catch (error) {
-        console.error('Error reading settings:', error);
-    }
-    
     // First read ingredients (index -1)
     if (index === -1) {
         highlightIngredients();
@@ -242,7 +215,7 @@ function readStep(index) {
         currentUtterance.rate = 0.85;
         
         // Set voice
-        const preferredVoice = getPreferredHebrewVoice(voiceGender);
+        const preferredVoice = getPreferredHebrewVoice();
         if (preferredVoice) currentUtterance.voice = preferredVoice;
         
         currentUtterance.onend = () => {
@@ -300,14 +273,8 @@ function readStep(index) {
     currentUtterance.rate = 0.85;
     
     // Set voice
-    const voices = speechSynthesis.getVoices();
-    const hebrewVoices = voices.filter(v => v.lang.startsWith('he'));
-    if (hebrewVoices.length > 0) {
-        const preferredVoice = hebrewVoices.find(v => 
-            voiceGender === 'female' ? v.name.includes('female') || v.name.includes('Female') : true
-        );
-        if (preferredVoice) currentUtterance.voice = preferredVoice;
-    }
+    const preferredVoice = getPreferredHebrewVoice();
+    if (preferredVoice) currentUtterance.voice = preferredVoice;
     
     currentUtterance.onend = () => {
         if (isReading) {

@@ -6,7 +6,6 @@ function loadSettings() {
         
         const stepDelayInput = document.getElementById('stepDelay');
         const themeSelect = document.getElementById('theme');
-        const voiceGenderSelect = document.getElementById('voiceGender');
         
         if (stepDelayInput) {
             stepDelayInput.value = settings.stepDelay || 3;
@@ -14,10 +13,6 @@ function loadSettings() {
         
         if (themeSelect) {
             themeSelect.value = settings.theme || 'light';
-        }
-        
-        if (voiceGenderSelect) {
-            voiceGenderSelect.value = settings.voiceGender || 'male';
         }
 
         applyTheme(settings.theme || 'light');
@@ -27,7 +22,7 @@ function loadSettings() {
     }
 }
 
-function saveSettings(stepDelay, theme, voiceGender) {
+function saveSettings(stepDelay, theme) {
     if (!stepDelay || isNaN(stepDelay) || stepDelay < 1 || stepDelay > 30) {
         console.error('Invalid step delay value');
         return false;
@@ -40,8 +35,7 @@ function saveSettings(stepDelay, theme, voiceGender) {
     
     const settings = {
         stepDelay: parseInt(stepDelay, 10),
-        theme: theme,
-        voiceGender: voiceGender || 'male'
+        theme: theme
     };
     
     try {
@@ -83,15 +77,12 @@ function initSettingsPage() {
         
         const stepDelayInput = document.getElementById('stepDelay');
         const themeSelect = document.getElementById('theme');
-        const voiceGenderSelect = document.getElementById('voiceGender');
-        
         if (!stepDelayInput || !themeSelect) return;
         
         const stepDelay = stepDelayInput.value;
         const theme = themeSelect.value;
-        const voiceGender = voiceGenderSelect ? voiceGenderSelect.value : 'male';
 
-        if (!saveSettings(stepDelay, theme, voiceGender)) {
+        if (!saveSettings(stepDelay, theme)) {
             const message = document.getElementById('saveMessage');
             if (message) {
                 message.textContent = '❌ שגיאה בשמירת ההגדרות';
