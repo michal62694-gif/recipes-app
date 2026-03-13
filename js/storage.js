@@ -25,7 +25,8 @@ function initStorage() {
     if (!localStorage.getItem('userSettings')) {
         const defaultSettings = {
             stepDelay: 3,
-            theme: 'light'
+            theme: 'light',
+            voiceGender: 'male'
         };
         localStorage.setItem('userSettings', JSON.stringify(defaultSettings));
     }

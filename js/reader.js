@@ -9,19 +9,31 @@ let currentUtterance = null;
 function getRecipeIdFromUrl() {
     try {
         const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        return id ? parseInt(id, 10) : null;
+        return params.get('id');
     } catch (error) {
         console.error('Error parsing URL:', error);
         return null;
     }
 }
 
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        padding: 15px 25px; border-radius: 8px; font-size: 16px;
+        background: ${type === 'error' ? '#f44336' : '#4CAF50'};
+        color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    `;
+    document.body.appendChild(messageDiv);
+    setTimeout(() => messageDiv.remove(), 3000);
+}
+
 function loadRecipe() {
     const recipeId = getRecipeIdFromUrl();
     const titleElement = document.getElementById('recipeTitle');
     
-    if (!recipeId || isNaN(recipeId)) {
+    if (!recipeId) {
         if (titleElement) {
             titleElement.textContent = 'מתכון לא נמצא';
         }
@@ -30,7 +42,7 @@ function loadRecipe() {
     
     try {
         const recipes = JSON.parse(localStorage.getItem('recipes')) || [];
-        currentRecipe = recipes.find(r => r.id === recipeId);
+        currentRecipe = recipes.find(r => String(r.id) === recipeId);
         
         if (currentRecipe) {
             displayRecipe(currentRecipe);
@@ -123,6 +135,32 @@ function removeHighlightIngredients() {
     }
 }
 
+function getPreferredHebrewVoice(voiceGender) {
+    const voices = speechSynthesis.getVoices() || [];
+    const hebrewVoices = voices.filter(v => v.lang && v.lang.startsWith('he'));
+    if (hebrewVoices.length === 0) return null;
+
+    const gender = (voiceGender || 'male').toLowerCase();
+
+    // Try to find a voice that explicitly contains a gender hint.
+    const genderHints = gender === 'female'
+        ? ['female', 'woman', 'w']
+        : ['male', 'man', 'm'];
+
+    const match = hebrewVoices.find(v =>
+        genderHints.some(hint => v.name.toLowerCase().includes(hint))
+    );
+
+    if (match) return match;
+
+    // If there are multiple Hebrew voices, use the second one for female and first for male.
+    if (hebrewVoices.length > 1) {
+        return gender === 'female' ? hebrewVoices[1] : hebrewVoices[0];
+    }
+
+    return hebrewVoices[0];
+}
+
 function speakText(text, onEndCallback) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'he-IL';
@@ -132,28 +170,21 @@ function speakText(text, onEndCallback) {
     try {
         const settings = JSON.parse(localStorage.getItem('userSettings')) || {};
         const voiceGender = settings.voiceGender || 'male';
-        const voices = speechSynthesis.getVoices();
-        const hebrewVoices = voices.filter(v => v.lang.startsWith('he'));
-        
-        if (hebrewVoices.length > 0) {
-            const preferredVoice = hebrewVoices.find(v => 
-                voiceGender === 'female' ? v.name.includes('female') || v.name.includes('Female') : true
-            );
-            if (preferredVoice) utterance.voice = preferredVoice;
-        }
+        const preferredVoice = getPreferredHebrewVoice(voiceGender);
+        if (preferredVoice) utterance.voice = preferredVoice;
     } catch (error) {
         console.error('Error setting voice:', error);
     }
-    
+
     utterance.onend = () => {
         if (onEndCallback) onEndCallback();
     };
-    
+
     utterance.onerror = (event) => {
         console.error('שגיאה בקריאה:', event);
         if (onEndCallback) onEndCallback();
     };
-    
+
     try {
         speechSynthesis.speak(utterance);
     } catch (error) {
@@ -188,14 +219,8 @@ function readStep(index) {
         currentUtterance.rate = 0.85;
         
         // Set voice
-        const voices = speechSynthesis.getVoices();
-        const hebrewVoices = voices.filter(v => v.lang.startsWith('he'));
-        if (hebrewVoices.length > 0) {
-            const preferredVoice = hebrewVoices.find(v => 
-                voiceGender === 'female' ? v.name.includes('female') || v.name.includes('Female') : true
-            );
-            if (preferredVoice) currentUtterance.voice = preferredVoice;
-        }
+        const preferredVoice = getPreferredHebrewVoice(voiceGender);
+        if (preferredVoice) currentUtterance.voice = preferredVoice;
         
         currentUtterance.onend = () => {
             if (isReading) {
