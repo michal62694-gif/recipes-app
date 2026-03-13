@@ -105,9 +105,96 @@ function highlightStep(index) {
     }
 }
 
+function highlightIngredients() {
+    const ingredientsList = document.getElementById('ingredientsList');
+    if (ingredientsList) {
+        ingredientsList.style.backgroundColor = '#ffffcc';
+        ingredientsList.style.padding = '15px';
+        ingredientsList.style.borderRadius = '10px';
+        ingredientsList.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function removeHighlightIngredients() {
+    const ingredientsList = document.getElementById('ingredientsList');
+    if (ingredientsList) {
+        ingredientsList.style.backgroundColor = '';
+        ingredientsList.style.padding = '';
+    }
+}
+
+function speakText(text, onEndCallback) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'he-IL';
+    utterance.rate = 0.85;
+    
+    utterance.onend = () => {
+        if (onEndCallback) onEndCallback();
+    };
+    
+    utterance.onerror = (event) => {
+        console.error('שגיאה בקריאה:', event);
+        if (onEndCallback) onEndCallback();
+    };
+    
+    try {
+        speechSynthesis.speak(utterance);
+    } catch (error) {
+        console.error('Speech synthesis error:', error);
+        if (onEndCallback) onEndCallback();
+    }
+}
+
 function readStep(index) {
-    if (!isReading || !currentRecipe || !Array.isArray(currentRecipe.steps) || index >= currentRecipe.steps.length) {
+    if (!isReading || !currentRecipe) {
         stopReading();
+        return;
+    }
+    
+    // First read ingredients (index -1)
+    if (index === -1) {
+        highlightIngredients();
+        
+        const ingredientsText = 'המרכיבים שנצטרך: ' + currentRecipe.ingredients.join(', ');
+        
+        currentUtterance = new SpeechSynthesisUtterance(ingredientsText);
+        currentUtterance.lang = 'he-IL';
+        currentUtterance.rate = 0.85;
+        
+        currentUtterance.onend = () => {
+            if (isReading) {
+                removeHighlightIngredients();
+                currentStepIndex = 0;
+                setTimeout(() => {
+                    const introText = 'עכשיו נתחיל בשלבי ההכנה';
+                    speakText(introText, () => {
+                        setTimeout(() => readStep(0), 1000);
+                    });
+                }, getWaitTime());
+            }
+        };
+        
+        currentUtterance.onerror = (event) => {
+            console.error('שגיאה בקריאה:', event);
+            stopReading();
+        };
+        
+        try {
+            speechSynthesis.speak(currentUtterance);
+        } catch (error) {
+            console.error('Speech synthesis error:', error);
+            stopReading();
+        }
+        return;
+    }
+    
+    // Read steps
+    if (!Array.isArray(currentRecipe.steps) || index >= currentRecipe.steps.length) {
+        // Finished reading all steps
+        const finishText = 'המתכון מוכן! בתאבון!';
+        speakText(finishText, () => {
+            stopReading();
+        });
         return;
     }
     
@@ -120,9 +207,13 @@ function readStep(index) {
         return;
     }
     
-    currentUtterance = new SpeechSynthesisUtterance(stepText);
+    // Add step number to speech
+    const stepNumber = index + 1;
+    const fullText = `שלב ${stepNumber}: ${stepText}`;
+    
+    currentUtterance = new SpeechSynthesisUtterance(fullText);
     currentUtterance.lang = 'he-IL';
-    currentUtterance.rate = 0.9;
+    currentUtterance.rate = 0.85;
     
     currentUtterance.onend = () => {
         if (isReading) {
@@ -132,7 +223,7 @@ function readStep(index) {
                     readStep(currentStepIndex);
                 }, getWaitTime());
             } else {
-                stopReading();
+                readStep(currentStepIndex); // Will trigger finish message
             }
         }
     };
@@ -157,7 +248,7 @@ function startReading() {
     }
     
     isReading = true;
-    currentStepIndex = 0;
+    currentStepIndex = -1; // Start with ingredients
     
     const startBtn = document.getElementById('startReadingBtn');
     const stopBtn = document.getElementById('stopReadingBtn');
@@ -165,7 +256,11 @@ function startReading() {
     if (startBtn) startBtn.disabled = true;
     if (stopBtn) stopBtn.disabled = false;
     
-    readStep(currentStepIndex);
+    // Start with welcome message
+    const welcomeText = `בואו נכין את ${currentRecipe.name}`;
+    speakText(welcomeText, () => {
+        setTimeout(() => readStep(-1), 1000);
+    });
 }
 
 function stopReading() {
@@ -179,11 +274,14 @@ function stopReading() {
         console.error('Error stopping speech:', error);
     }
     
+    // Remove all highlights
     const allSteps = document.querySelectorAll('#stepsList li');
     allSteps.forEach(li => {
         li.style.backgroundColor = '';
         li.style.fontWeight = '';
     });
+    
+    removeHighlightIngredients();
     
     const startBtn = document.getElementById('startReadingBtn');
     const stopBtn = document.getElementById('stopReadingBtn');
